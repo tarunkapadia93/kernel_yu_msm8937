@@ -73,6 +73,8 @@ static atomic_t quat_mi2s_clk_ref;
 static atomic_t quin_mi2s_clk_ref;
 static atomic_t auxpcm_mi2s_clk_ref;
 
+int ext_spk_pa_gpio = -1;
+
 static int msm8952_enable_dig_cdc_clk(struct snd_soc_codec *codec, int enable,
 					bool dapm);
 static bool msm8952_swap_gnd_mic(struct snd_soc_codec *codec);
@@ -257,6 +259,9 @@ int is_ext_spk_gpio_support(struct platform_device *pdev,
 			return -EINVAL;
 		}
 	}
+
+	gpio_direction_output(pdata->spk_ext_pa_gpio, 0);
+
 	return 0;
 }
 
@@ -264,7 +269,7 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 {
 	struct snd_soc_card *card = codec->component.card;
 	struct msm8916_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
-	int ret;
+	// int ret = 0;
 
 	if (!gpio_is_valid(pdata->spk_ext_pa_gpio)) {
 		pr_err("%s: Invalid gpio: %d\n", __func__,
@@ -276,21 +281,25 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 		enable ? "Enable" : "Disable");
 
 	if (enable) {
-		ret = msm_gpioset_activate(CLIENT_WCD_INT, "ext_spk_gpio");
+		/*ret = msm_gpioset_activate(CLIENT_WCD_INT, "ext_spk_gpio");
 		if (ret) {
 			pr_err("%s: gpio set cannot be de-activated %s\n",
 					__func__, "ext_spk_gpio");
 			return ret;
-		}
-		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
+		}*/
+		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 1);
+		udelay(2);
+		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 0);
+		udelay(2);
+		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 1);
 	} else {
 		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
-		ret = msm_gpioset_suspend(CLIENT_WCD_INT, "ext_spk_gpio");
+		/*ret = msm_gpioset_suspend(CLIENT_WCD_INT, "ext_spk_gpio");
 		if (ret) {
 			pr_err("%s: gpio set cannot be de-activated %s\n",
 					__func__, "ext_spk_gpio");
 			return ret;
-		}
+		}*/
 	}
 	return 0;
 }
