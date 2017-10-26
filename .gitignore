@@ -98,5 +98,6 @@ x509.genkey
 all.config
 
 # Tarun93
+/out
 /zip
 *.sh
